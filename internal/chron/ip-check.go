@@ -1,0 +1,5 @@
+package chron
+
+func CheckIP() {
+
+}

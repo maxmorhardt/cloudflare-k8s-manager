@@ -3,6 +3,7 @@ module github.com/maxmorhardt/cloudflare-k8s-manager
 go 1.24.2
 
 require (
+	github.com/sirupsen/logrus v1.9.3
 	k8s.io/api v0.33.0
 	k8s.io/apimachinery v0.33.0
 	k8s.io/client-go v0.33.0
