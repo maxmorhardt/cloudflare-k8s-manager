@@ -55,15 +55,15 @@ func watchIngresses(watchList *cache.ListWatch, stopCh <-chan struct{}) {
 		Handler: cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj any) {
 				ing := obj.(*networkingv1.Ingress)
-				log.Printf("Ingress added or exists namespace=%v name=%v", ing.Namespace, ing.Name)
+				log.Infof("Ingress added or exists namespace=%v name=%v", ing.Namespace, ing.Name)
 			},
 			UpdateFunc: func(_, newObj any) {
 				ing := newObj.(*networkingv1.Ingress)
-				log.Printf("Ingress updated namespace=%v name=%v", ing.Namespace, ing.Name)
+				log.Infof("Ingress updated namespace=%v name=%v", ing.Namespace, ing.Name)
 			},
 			DeleteFunc: func(obj any) {
 				ing := obj.(*networkingv1.Ingress)
-				log.Printf("Ingress deleted namespace=%v name=%v", ing.Namespace, ing.Name)
+				log.Infof("Ingress deleted namespace=%v name=%v", ing.Namespace, ing.Name)
 			},
 		},
 		ResyncPeriod: 0,
@@ -84,15 +84,15 @@ func watchServices(watchList *cache.ListWatch, stopCh <-chan struct{}) {
 		Handler: cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj any) {
 				svc := obj.(*corev1.Service)
-				log.Printf("Service added or exists namespace=%v name=%v", svc.Namespace, svc.Name)
+				log.Infof("Service added or exists namespace=%v name=%v", svc.Namespace, svc.Name)
 			},
 			UpdateFunc: func(_, newObj any) {
 				svc := newObj.(*corev1.Service)
-				log.Printf("Service updated namespace=%v name=%v", svc.Namespace, svc.Name)
+				log.Infof("Service updated namespace=%v name=%v", svc.Namespace, svc.Name)
 			},
 			DeleteFunc: func(obj any) {
 				svc := obj.(*corev1.Service)
-				log.Printf("Service deleted namespace=%v name=%v", svc.Namespace, svc.Name)
+				log.Infof("Service deleted namespace=%v name=%v", svc.Namespace, svc.Name)
 			},
 		},
 		ResyncPeriod: 0,
