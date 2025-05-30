@@ -11,7 +11,11 @@ import (
 )
 
 func Watcher() {
-	clientset := GetClientset()
+	clientset, err := GetClientset()
+	if err != nil {
+		log.Info("fdskljhfldfsdd")
+	}
+
 	ingressWatchList := createIngressListWatch(clientset)
 	serviceWatchList := createServiceListWatch(clientset)
 

@@ -3,6 +3,8 @@ module github.com/maxmorhardt/cloudflare-k8s-manager
 go 1.24.2
 
 require (
+	github.com/go-resty/resty/v2 v2.16.5
+	github.com/joho/godotenv v1.5.1
 	github.com/sirupsen/logrus v1.9.3
 	k8s.io/api v0.33.0
 	k8s.io/apimachinery v0.33.0
@@ -30,11 +32,11 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/oauth2 v0.27.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/term v0.32.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect

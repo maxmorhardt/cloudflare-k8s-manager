@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"os"
+	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -9,25 +10,37 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func GetClientset() *kubernetes.Clientset {
-	config := getKubeConfig()
-	return createKubeClient(config)
-}
-
-func getKubeConfig() *rest.Config {
+func GetClientset() (*kubernetes.Clientset, error) {
 	log.Info("Attempting to use in cluster config")
 	config, err := rest.InClusterConfig()
-	if err != nil {
-		log.Warn("In cluster config failed. Attempting to use kube config")
-		kubeconfig := os.Getenv("KUBECONFIG")
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			log.Error("Failed to load kubeconfig", "error", err)
-			os.Exit(1)
-		}
+	if err == nil {
+		log.Info("Successfully got in-cluster kube config")
+		return createKubeClient(config), nil
 	}
 
-	return config
+	log.Warn("In cluster config failed. Attempting to use kube config")
+	kubeConfigEnvPath := os.Getenv("KUBECONFIG")
+	config, err = clientcmd.BuildConfigFromFlags("", kubeConfigEnvPath)
+	if err == nil {
+		log.Info("Successfully got env var kube config")
+		return createKubeClient(config), nil
+	}
+
+	log.Warn("Kube config env var failed. Attempting to use ~/.kube/config")
+	userHome, err := os.UserHomeDir()
+	if err != nil {
+		log.Errorf("Could not get user home directory: %v", err)
+		panic(err)
+	}
+
+	kubeConfigUserPath := filepath.Join(userHome, ".kube", "config")
+	config, err = clientcmd.BuildConfigFromFlags("", kubeConfigUserPath)
+	if err == nil {
+		log.Info("Successfully got user home kube config")
+		return createKubeClient(config), nil
+	}
+
+	return nil, err
 }
 
 func createKubeClient(config *rest.Config) *kubernetes.Clientset {

@@ -6,8 +6,9 @@ import (
 	"runtime"
 	"strconv"
 
+	"github.com/joho/godotenv"
 	"github.com/maxmorhardt/cloudflare-k8s-manager/internal/cloudflare"
-	"github.com/maxmorhardt/cloudflare-k8s-manager/internal/k8s"
+	// "github.com/maxmorhardt/cloudflare-k8s-manager/internal/k8s"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,9 +23,24 @@ func main() {
 		},                                                                           
 	})
 
-	log.Info("Starting watcher")
-	go k8s.Watcher()
-	go cloudflare.Test()
+	err := godotenv.Load()
+	if err != nil {
+		log.Error("Could not load .env file")
+		os.Exit(1)
+	}
+
+	config := loadConfig()
+
+	// log.Info("Starting watcher")
+	// go k8s.Watcher()
+	go cloudflare.CheckDNSExists(config, "api.maxstash.io")
 
 	select {}
+}
+
+func loadConfig() *cloudflare.CloudflareConfig {
+	return &cloudflare.CloudflareConfig{
+		ZoneID: os.Getenv("CLOUDFLARE_ZONE_ID"),
+		APIKey: os.Getenv("CLOUDFLARE_API_KEY"),
+	}
 }
