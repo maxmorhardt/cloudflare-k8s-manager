@@ -13,7 +13,8 @@ import (
 func Watcher() {
 	clientset, err := GetClientset()
 	if err != nil {
-		log.Info("fdskljhfldfsdd")
+		log.Error()
+		panic(err)
 	}
 
 	ingressWatchList := createIngressListWatch(clientset)

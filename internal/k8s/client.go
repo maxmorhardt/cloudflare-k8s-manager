@@ -15,7 +15,7 @@ func GetClientset() (*kubernetes.Clientset, error) {
 	config, err := rest.InClusterConfig()
 	if err == nil {
 		log.Info("Successfully got in-cluster kube config")
-		return createKubeClient(config), nil
+		return createClientset(config), nil
 	}
 
 	log.Warn("In cluster config failed. Attempting to use kube config")
@@ -23,7 +23,7 @@ func GetClientset() (*kubernetes.Clientset, error) {
 	config, err = clientcmd.BuildConfigFromFlags("", kubeConfigEnvPath)
 	if err == nil {
 		log.Info("Successfully got env var kube config")
-		return createKubeClient(config), nil
+		return createClientset(config), nil
 	}
 
 	log.Warn("Kube config env var failed. Attempting to use ~/.kube/config")
@@ -37,13 +37,13 @@ func GetClientset() (*kubernetes.Clientset, error) {
 	config, err = clientcmd.BuildConfigFromFlags("", kubeConfigUserPath)
 	if err == nil {
 		log.Info("Successfully got user home kube config")
-		return createKubeClient(config), nil
+		return createClientset(config), nil
 	}
 
 	return nil, err
 }
 
-func createKubeClient(config *rest.Config) *kubernetes.Clientset {
+func createClientset(config *rest.Config) *kubernetes.Clientset {
 	log.Info("Creating k8s client")
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {

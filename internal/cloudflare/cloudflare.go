@@ -12,10 +12,12 @@ type CloudflareConfig struct {
 	APIKey string
 }
 
+// ignoring some fields here
 type CloudflareDnsRecords struct {
-	Result     []*CloudflareDnsRecord `json:"result"`
+	Result []*CloudflareDnsRecord `json:"result"`
 }
 
+// ignoring some fields here
 type CloudflareDnsRecord struct {
 	ID         string   `json:"id"`
 	Name       string   `json:"name"`
@@ -27,28 +29,7 @@ type CloudflareDnsRecord struct {
 
 func CheckDNSExists(config *CloudflareConfig, dns string) bool {
 	log.Infof("Checking if dns record %v exsits", dns)
-	var url = fmt.Sprintf("https://api.cloudflare.com/client/v4/zones/%v/dns_records", config.ZoneID)
-	log.Infof("Cloudflare api url: %v", url)
-	
-	client := resty.New()
-	dnsRecords := &CloudflareDnsRecords{}
-	res, err := client.R().
-		SetHeader("Accept", "application/json").
-		SetAuthToken(config.APIKey).
-		SetResult(dnsRecords).
-		Get(url)
-
-	if err != nil {
-		log.Error("Error calling cloudflare api", err)
-		panic(err)
-	}
-
-	if res.IsError() {
-		log.Errorf("Error response from cloudflare api status=%v body=%v", res.StatusCode(), res.String())
-		panic(res)
-	}
-
-	log.Info("Successfully got dns records")
+	dnsRecords := getDnsRecords(config)
 	for _, dnsRecord := range dnsRecords.Result {
 		if dnsRecord.Name == dns {
 			log.Infof("Dns record %v exists", dns)
@@ -58,4 +39,65 @@ func CheckDNSExists(config *CloudflareConfig, dns string) bool {
 
 	log.Infof("Dns record %v does not exist", dns)
 	return false
+}
+
+func getDnsRecords(config *CloudflareConfig) *CloudflareDnsRecords {
+	var cloudflareUrl = fmt.Sprintf("https://api.cloudflare.com/client/v4/zones/%v/dns_records", config.ZoneID)
+	log.Infof("Cloudflare api url: %v", cloudflareUrl)
+	
+	client := resty.New()
+	dnsRecords := &CloudflareDnsRecords{}
+	res, err := client.R().
+		SetHeader("Accept", "application/json").
+		SetAuthToken(config.APIKey).
+		SetResult(dnsRecords).
+		Get(cloudflareUrl)
+
+	if err != nil {
+		log.Errorf("Error calling cloudflare api: %v", err)
+		panic(err)
+	}
+
+	if res.IsError() {
+		log.Errorf("Error response from cloudflare api status=%v body=%v", res.StatusCode(), res.String())
+		panic(res)
+	}
+
+	log.Info("Successfully got dns records")
+	return dnsRecords
+}
+
+func UpdateCloudflareForDynamicIp(config *CloudflareConfig) {
+	log.Info("Comparing ip of dns records to cluster nodes")
+	ip := getCurrentIp()
+	dnsRecords := getDnsRecords(config)
+
+	for _, dnsRecord := range dnsRecords.Result {
+		if dnsRecord.Type == "A" && dnsRecord.Content != ip {
+			log.Infof("Mismatch dns ip %v with current nodes ip %v -- Patching record", dnsRecord.Content, ip)
+			// todo
+		}
+	}
+}
+
+func getCurrentIp() string {
+	log.Infof("Getting current ip")
+	const ipUrl = "https://api.ipify.org"
+
+	client := resty.New()
+	res, err := client.R().Get(ipUrl)
+
+	if err != nil {
+		log.Errorf("Error calling cloudflare api: %v", err)
+		panic(err)
+	}
+
+	if res.IsError() {
+		log.Errorf("Error response from cloudflare api status=%v body=%v", res.StatusCode(), res.String())
+		panic(res)
+	}
+
+	ip := res.String()
+	log.Infof("IP: %v", ip)
+	return ip
 }

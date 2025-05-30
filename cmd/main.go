@@ -33,7 +33,8 @@ func main() {
 
 	// log.Info("Starting watcher")
 	// go k8s.Watcher()
-	go cloudflare.CheckDNSExists(config, "api.maxstash.io")
+	// go cloudflare.CheckDNSExists(config, "api.maxstash.io")
+	go cloudflare.UpdateCloudflareForDynamicIp(config)
 
 	select {}
 }
