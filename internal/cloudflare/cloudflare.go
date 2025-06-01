@@ -27,7 +27,7 @@ type CloudflareDnsRecord struct {
 	Proxied    bool     `json:"proxied"`
 }
 
-func CheckDNSExists(config *CloudflareConfig, dns string) bool {
+func CheckDnsExists(config *CloudflareConfig, dns string) bool {
 	log.Infof("Checking if dns record %v exsits", dns)
 	dnsRecords := getDnsRecords(config)
 	for _, dnsRecord := range dnsRecords.Result {
@@ -43,7 +43,7 @@ func CheckDNSExists(config *CloudflareConfig, dns string) bool {
 
 func getDnsRecords(config *CloudflareConfig) *CloudflareDnsRecords {
 	var cloudflareUrl = fmt.Sprintf("https://api.cloudflare.com/client/v4/zones/%v/dns_records", config.ZoneID)
-	log.Infof("Cloudflare api url: %v", cloudflareUrl)
+	log.Infof("Cloudflare get dns records url: %v", cloudflareUrl)
 	
 	client := resty.New()
 	dnsRecords := &CloudflareDnsRecords{}
@@ -75,7 +75,8 @@ func UpdateCloudflareForDynamicIp(config *CloudflareConfig) {
 	for _, dnsRecord := range dnsRecords.Result {
 		if dnsRecord.Type == "A" && dnsRecord.Content != ip {
 			log.Infof("Mismatch dns ip %v with current nodes ip %v -- Patching record", dnsRecord.Content, ip)
-			// todo
+			dnsRecord.Content = ip
+			patchDnsRecord(config, dnsRecord)
 		}
 	}
 }
@@ -100,4 +101,58 @@ func getCurrentIp() string {
 	ip := res.String()
 	log.Infof("IP: %v", ip)
 	return ip
+}
+
+func patchDnsRecord(config *CloudflareConfig, dnsRecord *CloudflareDnsRecord) {
+	var cloudflareUrl = fmt.Sprintf("https://api.cloudflare.com/client/v4/zones/%v/dns_records/%v", config.ZoneID, dnsRecord.ID)
+	log.Infof("Cloudflare patch dns record url: %v", cloudflareUrl)
+
+	client := resty.New()
+	res, err := client.R().
+		SetHeader("Accept", "application/json").
+		SetAuthToken(config.APIKey).
+		SetBody(dnsRecord).
+		Patch(cloudflareUrl)
+
+	if err != nil {
+		log.Errorf("Error calling cloudflare api: %v", err)
+		panic(err)
+	}
+
+	if res.IsError() {
+		log.Errorf("Error response from cloudflare api status=%v body=%v", res.StatusCode(), res.String())
+		panic(res)
+	}
+
+	log.Infof("Successfully updated record name=%v", dnsRecord.Name)
+}
+
+// func CreateDnsRecordFromIngress() {
+// 	dnsRecord := &CloudflareDnsRecord{
+// 		Name: 
+// 	}
+// }
+
+func createDnsRecord(config *CloudflareConfig, dnsRecord *CloudflareDnsRecord) {
+	var cloudflareUrl = fmt.Sprintf("https://api.cloudflare.com/client/v4/zones/%v/dns_records/%v", config.ZoneID, dnsRecord.ID)
+	log.Infof("Cloudflare patch dns record url: %v", cloudflareUrl)
+
+	client := resty.New()
+	res, err := client.R().
+		SetHeader("Accept", "application/json").
+		SetAuthToken(config.APIKey).
+		SetBody(dnsRecord).
+		Put(cloudflareUrl)
+
+	if err != nil {
+		log.Errorf("Error calling cloudflare api: %v", err)
+		panic(err)
+	}
+
+	if res.IsError() {
+		log.Errorf("Error response from cloudflare api status=%v body=%v", res.StatusCode(), res.String())
+		panic(res)
+	}
+
+	log.Infof("Successfully updated record name=%v", dnsRecord.Name)
 }
